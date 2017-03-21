@@ -1,0 +1,137 @@
+			    ________________
+
+				  RKT
+
+			     Prateem Mandal
+			    ________________
+
+
+Table of Contents
+_________________
+
+1 Creating a basic container
+.. 1.1 Code and build your application
+.. 1.2 Create an image
+.. 1.3 Launch the rocket container
+2 References
+
+
+1 Creating a basic container
+============================
+
+1.1 Code and build your application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Write a basic hello world C program and compile it.
+  ,----
+  | #include <stdio.h>
+  | 
+  | int main() {
+  |   printf("Hello, Rocket!")
+  | }
+  `----
+  ,----
+  | gcc -Wall -o hello hello.c -static
+  `----
+
+
+1.2 Create an image
+~~~~~~~~~~~~~~~~~~~
+
+  1) [Install Go]
+  2) Compile the image builder from source from its [github repository].
+     + Rename the build folder to acbuild.
+     + Checkout the latest tagged release.
+       ,----
+       | git tag -l
+       | git checkout tags/v0.4.0
+       `----
+     + Build the binary.
+     + Update the ~/.bashrc file.
+  3) Create the container image.
+     ,----
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/acbuild$ acbuild version
+     | acbuild version v0.4.0
+     | appc version 0.8.5
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/acbuild$ cd ..
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS$ ls
+     | acbuild  applications
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS$ cd applications/
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications$ ls
+     | hello
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications$ cd hello/                                                                
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ ls
+     | hello  hello.c  hello.c~                                         
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild begin                                                      
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild set-name example.com/hello
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ ls
+     | hello  hello.c  hello.c~                                         
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild copy hello /bin/hello                                     
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild set-exec /bin/hello                                        
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild port add www tcp 5000                                      
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild label add version 0.0.1                                    
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild label add arch amd64                                       
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild label add os linux                                         
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild annotation add authors "Prateem Mandal <prateem@gmail.com>"
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild write hello-0.0.1-linux-amd64.aci                          
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ tree                                                               
+     | .
+     | ├── hello
+     | ├── hello-0.0.1-linux-amd64.aci
+     | ├── hello.c
+     | └── hello.c~
+     | 
+     | 1 directory, 4 files
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ acbuild end                                                        
+     | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$
+     `----
+
+
+  [Install Go] https://github.com/golang/go/wiki/Ubuntu
+
+  [github repository] https://github.com/containers/build
+
+
+1.3 Launch the rocket container
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Build and install rocket by following the [hacking guide]. I did try
+  to build natively but gave up after I faced with installing lot of
+  stuff for satisfying dependencies. I then built it using docker. The
+  dependency installation script is missing gnupg which is needed for
+  building rkt. I added that to the script and attempted a build.
+  ,----
+  | -DEBIAN_SID_DEPS="ca-certificates gcc libc6-dev make automake wget git golang-go coreutils cpio squashfs-tools realpath autoconf file xz-utils patch bc locales libacl1-dev libssl-dev libtspi-dev libsystemd-dev"
+  | +DEBIAN_SID_DEPS="ca-certificates gcc libc6-dev make automake wget git golang-go coreutils cpio squashfs-tools realpath autoconf file xz-utils patch bc locales libacl1-dev libssl-dev libtspi-dev libsystemd-dev gnupg"
+  `----
+  ,----
+  | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/rkt$ sudo docker run -v /home/prateem/CoreOS/rkt:/opt/rkt debian:sid /bin/bash -c "cd /opt/rkt && ./scripts/install-deps-debian-sid.sh && ./autogen.sh && ./configure && make"
+  `----
+  Unfortunately this building attempt failed due to an issue with my
+  host Ubuntu kernel. So I finally downloaded the latest rkt binary
+  using the [running-the-latest-rkt-binary] guide. That finally worked.
+  ,----
+  | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/rkt-v1.25.0$ ls
+  | bash_completion  init  manpages  rkt  scripts  stage1-coreos.aci  stage1-fly.aci  stage1-kvm.aci
+  | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/rkt-v1.25.0$ . ~/.bashrc
+  | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/rkt-v1.25.0$ which rkt
+  | /home/prateem/CoreOS/rkt-v1.25.0/rkt
+  | prateem@prateem-HP-EliteBook-8570p:~/CoreOS/rkt-v1.25.0$ rkt --insecure-options=image
+  `----
+
+
+  [hacking guide]
+  https://github.com/coreos/rkt/blob/master/Documentation/hacking.md
+
+  [running-the-latest-rkt-binary]
+  https://github.com/coreos/rkt/blob/master/Documentation/trying-out-rkt.md#running-the-latest-rkt-binary
+
+
+2 References
+============
+
+  1) [CoreOS - Rocket Getting Started Guide]
+
+
+  [CoreOS - Rocket Getting Started Guide]
+  https://coreos.com/rkt/docs/latest/getting-started-guide.html
