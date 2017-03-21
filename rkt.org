@@ -70,12 +70,11 @@
    #+END_EXAMPLE
    Unfortunately this building attempt failed due to an issue with my host Ubuntu kernel. So I finally downloaded the latest rkt binary using the [[https://github.com/coreos/rkt/blob/master/Documentation/trying-out-rkt.md#running-the-latest-rkt-binary][running-the-latest-rkt-binary]] guide. That finally worked.
    #+BEGIN_EXAMPLE
-     prateem@prateem-HP-EliteBook-8570p:~/CoreOS/rkt-v1.25.0$ ls
-     bash_completion  init  manpages  rkt  scripts  stage1-coreos.aci  stage1-fly.aci  stage1-kvm.aci
-     prateem@prateem-HP-EliteBook-8570p:~/CoreOS/rkt-v1.25.0$ . ~/.bashrc
-     prateem@prateem-HP-EliteBook-8570p:~/CoreOS/rkt-v1.25.0$ which rkt
-     /home/prateem/CoreOS/rkt-v1.25.0/rkt
-     prateem@prateem-HP-EliteBook-8570p:~/CoreOS/rkt-v1.25.0$ rkt --insecure-options=image 
+     prateem@prateem-HP-EliteBook-8570p:~/CoreOS/applications/hello$ sudo ~/CoreOS/rkt-v1.25.0/rkt --insecure-options=image run hello-0.0.1-linux-amd64.aci 
+     run: group "rkt" not found, will use default gid when rendering images
+     stage1: warning: error setting journal ACLs, you'll need root to read the pod journal: group "rkt" not found
+     [413899.089162] hello[5]: Hello, Rocket!
+
    #+END_EXAMPLE
 * References
   1) [[https://coreos.com/rkt/docs/latest/getting-started-guide.html][CoreOS - Rocket Getting Started Guide]]
